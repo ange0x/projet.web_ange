@@ -3,15 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\Role;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends StoreUserRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAdministrateur() === true;
+        return $this->user()?->can('update', $this->route('user')) ?? false;
     }
 
     /**
@@ -19,33 +18,34 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $compte = $this->route('compte');
-
         return [
             'name' => ['required', 'string', 'max:100'],
             'identifiant' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('users', 'identifiant')->ignore($compte),
+                'required', 'string', 'max:100',
+                'regex:/^[A-Za-z0-9._-]+$/',
+                Rule::unique('users', 'identifiant')->ignore($this->route('user')),
             ],
-            'password' => ['nullable', 'confirmed', Password::min(8)],
+            'password' => ['nullable', 'string', 'min:8', 'max:255', 'confirmed'],
             'role' => ['required', Rule::enum(Role::class)],
-            'actif' => ['sometimes', 'boolean'],
+            'actif' => ['nullable', 'boolean'],
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
+    public function withValidator(Validator $validator): void
     {
-        return [
-            'name' => 'nom',
-            'identifiant' => 'identifiant',
-            'password' => 'mot de passe',
-            'role' => 'rôle',
-            'actif' => 'statut',
-        ];
+        $validator->after(function (Validator $validator): void {
+            $cible = $this->route('user');
+
+            // Un administrateur ne peut pas se verrouiller hors de l'application.
+            if ($cible->is($this->user())) {
+                if (! $this->boolean('actif')) {
+                    $validator->errors()->add('actif', 'Vous ne pouvez pas désactiver votre propre compte.');
+                }
+
+                if ($this->input('role') !== $cible->role->value) {
+                    $validator->errors()->add('role', 'Vous ne pouvez pas modifier votre propre rôle.');
+                }
+            }
+        });
     }
 }
