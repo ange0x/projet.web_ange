@@ -1,0 +1,46 @@
+@extends('layouts.base')
+
+@section('titre', 'Gestion des comptes')
+
+@section('contenu')
+<div class="carte carte-large">
+    <h1>Gestion des comptes</h1>
+
+    @if (session('statut'))
+        <div class="statut" role="status">{{ session('statut') }}</div>
+    @endif
+
+    <p class="actions">
+        <a class="bouton" href="{{ route('comptes.create') }}">Créer un compte</a>
+        <a href="{{ route('accueil') }}">Retour à l’accueil</a>
+    </p>
+
+    <div class="tableau-defilant" role="region" aria-label="Liste des comptes" tabindex="0">
+        <table>
+            <caption>Comptes des utilisateurs ({{ $comptes->count() }})</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Identifiant</th>
+                    <th scope="col">Rôle</th>
+                    <th scope="col">État</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($comptes as $compte)
+                    <tr>
+                        <th scope="row">{{ $compte->name }}</th>
+                        <td>{{ $compte->identifiant }}</td>
+                        <td>{{ $compte->roleLabel() }}</td>
+                        <td>{{ $compte->actif ? 'Actif' : 'Désactivé' }}</td>
+                        <td>
+                            <a href="{{ route('comptes.edit', $compte) }}">Modifier<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection
