@@ -18,18 +18,20 @@ class LoginRequest extends FormRequest
     {
         return [
             'identifiant' => ['required', 'string', 'max:100'],
-            'password' => ['required', 'string'],
+            'password' => ['required', 'string', 'max:255'],
         ];
     }
 
     /**
      * @return array<string, string>
      */
-    public function attributes(): array
+    public function messages(): array
     {
         return [
-            'identifiant' => 'identifiant',
-            'password' => 'mot de passe',
+            'identifiant.required' => 'Saisissez votre identifiant.',
+            'identifiant.max' => 'L’identifiant ne doit pas dépasser 100 caractères.',
+            'password.required' => 'Saisissez votre mot de passe.',
+            'password.max' => 'Le mot de passe est trop long.',
         ];
     }
 }

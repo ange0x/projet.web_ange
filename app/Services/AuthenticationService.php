@@ -18,13 +18,26 @@ class AuthenticationService
         $ip = Request::ip();
         $user = User::query()->where('identifiant', $identifiant)->first();
 
-        if ($user?->isLocked()) {
+        // Le blocage est terminé : on repart de zéro.
+        if ($user !== null && $user->locked_until !== null && ! $user->isLocked()) {
+            $user->forceFill([
+                'failed_login_attempts' => 0,
+                'locked_until' => null,
+            ])->save();
+        }
+
+        // Compte inconnu ou bloqué : même temps de réponse qu'un compte normal,
+        // pour ne pas révéler quels identifiants existent.
+        if ($user === null || $user->isLocked()) {
+            Hash::make($password);
             $this->logFailure($identifiant, $ip);
 
             return false;
         }
 
-        if ($user && $user->actif && Hash::check($password, $user->password)) {
+        $motDePasseCorrect = Hash::check($password, $user->password);
+
+        if ($user->actif && $motDePasseCorrect) {
             $user->forceFill([
                 'failed_login_attempts' => 0,
                 'locked_until' => null,
@@ -42,17 +55,14 @@ class AuthenticationService
             return true;
         }
 
-        if ($user) {
-            $attempts = $user->failed_login_attempts + 1;
-            $user->failed_login_attempts = $attempts;
+        $attempts = $user->failed_login_attempts + 1;
+        $user->failed_login_attempts = $attempts;
 
-            if ($attempts >= self::MAX_ATTEMPTS) {
-                $user->locked_until = now()->addMinutes(self::LOCK_MINUTES);
-            }
-
-            $user->save();
+        if ($attempts >= self::MAX_ATTEMPTS) {
+            $user->locked_until = now()->addMinutes(self::LOCK_MINUTES);
         }
 
+        $user->save();
         $this->logFailure($identifiant, $ip);
 
         return false;
