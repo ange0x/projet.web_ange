@@ -84,18 +84,22 @@ class Etudiant extends Model
     }
 
     /**
+     * Recherche par mots : chaque mot saisi doit se retrouver dans le nom,
+     * le prénom ou le numéro d'inscription, dans n'importe quel ordre.
+     *
      * @param  Builder<Etudiant>  $query
      * @return Builder<Etudiant>
      */
     public function scopeFiltrer(Builder $query, ?string $terme, ?string $filiere, ?string $niveau): Builder
     {
-        if (filled($terme)) {
-            $normalise = TextNormalizer::normalize($terme);
+        foreach (self::motsDeRecherche($terme) as $mot) {
+            $motif = '%'.self::echapperJokers($mot).'%';
+            $motifNormalise = '%'.self::echapperJokers(TextNormalizer::normalize($mot)).'%';
 
-            $query->where(function (Builder $inner) use ($terme, $normalise): void {
-                $inner->where('numero_inscription', 'like', '%'.$terme.'%')
-                    ->orWhere('nom_search', 'like', '%'.$normalise.'%')
-                    ->orWhere('prenom_search', 'like', '%'.$normalise.'%');
+            $query->where(function (Builder $inner) use ($motif, $motifNormalise): void {
+                $inner->whereRaw("numero_inscription LIKE ? ESCAPE '!'", [$motif])
+                    ->orWhereRaw("nom_search LIKE ? ESCAPE '!'", [$motifNormalise])
+                    ->orWhereRaw("prenom_search LIKE ? ESCAPE '!'", [$motifNormalise]);
             });
         }
 
@@ -108,5 +112,30 @@ class Etudiant extends Model
         }
 
         return $query;
+    }
+
+    /**
+     * Découpe le terme en mots (100 caractères et 5 mots au maximum).
+     *
+     * @return array<int, string>
+     */
+    public static function motsDeRecherche(?string $terme): array
+    {
+        $terme = mb_substr(trim((string) $terme), 0, 100);
+
+        if ($terme === '') {
+            return [];
+        }
+
+        return array_slice(preg_split('/\s+/u', $terme, -1, PREG_SPLIT_NO_EMPTY), 0, 5);
+    }
+
+    /**
+     * Les caractères % et _ sont cherchés comme du texte, pas comme des jokers.
+     * Le caractère d'échappement est « ! », déclaré par ESCAPE dans la requête.
+     */
+    private static function echapperJokers(string $valeur): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $valeur);
     }
 }

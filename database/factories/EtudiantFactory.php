@@ -31,7 +31,7 @@ class EtudiantFactory extends Factory
             'lieu_naissance' => fake()->city(),
             'adresse' => fake()->optional()->streetAddress(),
             'telephone' => '01'.fake()->numerify('########'),
-            'email' => fake()->optional()->unique()->safeEmail(),
+            'email' => fake()->boolean() ? fake()->unique()->safeEmail() : null,
             'filiere' => fake()->randomElement($filieres),
             'niveau' => fake()->randomElement($niveaux),
             'annee_academique' => AcademicYear::current(),
