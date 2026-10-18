@@ -17,8 +17,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/deconnexion', [ConnexionController::class, 'deconnecter'])->name('deconnexion');
 
     Route::resource('etudiants', EtudiantController::class)
-        ->only(['index', 'create', 'store', 'show'])
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update'])
         ->parameters(['etudiants' => 'etudiant']);
+    Route::post('/etudiants/{etudiant}/confirmer', [EtudiantController::class, 'confirmer'])->name('etudiants.confirmer');
+    Route::post('/etudiants/{etudiant}/corriger', [EtudiantController::class, 'corriger'])->name('etudiants.corriger');
 
     Route::middleware('role:administrateur')->group(function () {
         Route::resource('comptes', CompteController::class)

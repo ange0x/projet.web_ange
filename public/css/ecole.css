@@ -196,3 +196,8 @@ th a { color: inherit; font-weight: 700; }
 .recherche .actions { grid-column: 1 / -1; }
 
 .statut-liste { margin: 0 0 1rem; font-weight: 600; }
+
+.actions form { margin: 0; }
+
+button.secondaire { color: var(--accent); background: #ffffff; }
+button.secondaire:hover { color: #ffffff; background: #083a73; }
