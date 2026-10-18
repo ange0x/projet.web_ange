@@ -17,7 +17,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/deconnexion', [ConnexionController::class, 'deconnecter'])->name('deconnexion');
 
     Route::resource('etudiants', EtudiantController::class)
-        ->only(['create', 'store']);
+        ->only(['index', 'create', 'store', 'show'])
+        ->parameters(['etudiants' => 'etudiant']);
 
     Route::middleware('role:administrateur')->group(function () {
         Route::resource('comptes', CompteController::class)
