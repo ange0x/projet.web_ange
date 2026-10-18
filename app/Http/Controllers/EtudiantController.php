@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Sexe;
 use App\Http\Requests\StoreEtudiantRequest;
+use App\Http\Requests\UpdateEtudiantRequest;
 use App\Models\Etudiant;
 use App\Services\InscriptionNumberGenerator;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +19,23 @@ class EtudiantController extends Controller
     private const TRIS_AUTORISES = ['nom', 'date_inscription'];
 
     private const PAR_PAGE = 15;
+
+    private const LIBELLES = [
+        'nom' => 'Nom',
+        'prenom' => 'Prénom',
+        'sexe' => 'Sexe',
+        'date_naissance' => 'Date de naissance',
+        'lieu_naissance' => 'Lieu de naissance',
+        'adresse' => 'Adresse',
+        'telephone' => 'Téléphone',
+        'email' => 'E-mail',
+        'filiere' => 'Filière',
+        'niveau' => 'Niveau',
+        'annee_academique' => 'Année académique',
+        'date_inscription' => 'Date d’inscription',
+        'tuteur_nom' => 'Nom du tuteur',
+        'tuteur_telephone' => 'Téléphone du tuteur',
+    ];
 
     public function index(Request $request): View
     {
@@ -86,6 +106,143 @@ class EtudiantController extends Controller
                 $etudiant->nomComplet(),
                 $etudiant->numero_inscription,
             ));
+    }
+
+    public function edit(Etudiant $etudiant): View
+    {
+        Gate::authorize('update', $etudiant);
+
+        return view('etudiants.edit', [
+            'etudiant' => $etudiant,
+            'valeurs' => $this->valeursActuelles($etudiant),
+        ]);
+    }
+
+    /**
+     * Étape 2 : montre ce qui va changer, sans rien enregistrer.
+     */
+    public function confirmer(UpdateEtudiantRequest $request, Etudiant $etudiant): View|RedirectResponse
+    {
+        $donnees = $request->validated();
+        $changements = $this->changements($etudiant, $donnees);
+
+        if ($changements === []) {
+            return $this->aucunChangement($etudiant);
+        }
+
+        return view('etudiants.confirmer', [
+            'etudiant' => $etudiant,
+            'donnees' => $donnees,
+            'changements' => $changements,
+        ]);
+    }
+
+    /**
+     * « Modifier à nouveau » : retour au formulaire avec ce qui a été saisi.
+     */
+    public function corriger(Request $request, Etudiant $etudiant): View
+    {
+        Gate::authorize('update', $etudiant);
+
+        $saisies = array_map(
+            fn (mixed $valeur): string => is_string($valeur) ? $valeur : '',
+            $request->only(array_keys(self::LIBELLES)),
+        );
+
+        return view('etudiants.edit', [
+            'etudiant' => $etudiant,
+            'valeurs' => array_merge($this->valeursActuelles($etudiant), $saisies),
+        ]);
+    }
+
+    /**
+     * Étape 3 : enregistre. Tout est revalidé, les champs cachés ne sont pas crus.
+     */
+    public function update(UpdateEtudiantRequest $request, Etudiant $etudiant): RedirectResponse
+    {
+        $donnees = $request->validated();
+
+        if ($this->changements($etudiant, $donnees) === []) {
+            return $this->aucunChangement($etudiant);
+        }
+
+        $etudiant->update($donnees);
+
+        return redirect()
+            ->route('etudiants.show', $etudiant)
+            ->with('statut', sprintf('La fiche de %s a été modifiée.', $etudiant->nomComplet()));
+    }
+
+    private function aucunChangement(Etudiant $etudiant): RedirectResponse
+    {
+        return redirect()
+            ->route('etudiants.show', $etudiant)
+            ->with('statut', 'Aucune information n’a été modifiée.');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function valeursActuelles(Etudiant $etudiant): array
+    {
+        $valeurs = [];
+
+        foreach (array_keys(self::LIBELLES) as $champ) {
+            $valeur = $etudiant->{$champ};
+
+            $valeurs[$champ] = match (true) {
+                $valeur instanceof Sexe => $valeur->value,
+                $valeur instanceof \DateTimeInterface => $valeur->format('Y-m-d'),
+                default => (string) ($valeur ?? ''),
+            };
+        }
+
+        return $valeurs;
+    }
+
+    /**
+     * @param  array<string, mixed>  $donnees
+     * @return array<int, array{libelle: string, ancienne: string, nouvelle: string}>
+     */
+    private function changements(Etudiant $etudiant, array $donnees): array
+    {
+        $actuelles = $this->valeursActuelles($etudiant);
+        $changements = [];
+
+        foreach (self::LIBELLES as $champ => $libelle) {
+            if (! array_key_exists($champ, $donnees)) {
+                continue;
+            }
+
+            $nouvelle = (string) ($donnees[$champ] ?? '');
+
+            if ($actuelles[$champ] !== $nouvelle) {
+                $changements[] = [
+                    'libelle' => $libelle,
+                    'ancienne' => $this->afficher($champ, $actuelles[$champ]),
+                    'nouvelle' => $this->afficher($champ, $nouvelle),
+                ];
+            }
+        }
+
+        return $changements;
+    }
+
+    private function afficher(string $champ, string $valeur): string
+    {
+        if ($valeur === '') {
+            return 'Non renseigné';
+        }
+
+        if ($champ === 'sexe') {
+            return Sexe::tryFrom($valeur)?->label() ?? $valeur;
+        }
+
+        if (in_array($champ, ['date_naissance', 'date_inscription'], true)) {
+            return Carbon::createFromFormat('Y-m-d', $valeur)->format('d/m/Y');
+        }
+
+        return $valeur;
     }
 
     /**

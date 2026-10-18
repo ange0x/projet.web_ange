@@ -25,6 +25,10 @@
 <div class="carte carte-moyenne">
     <h1>Fiche de l’étudiant</h1>
 
+    @if (session('statut'))
+        <div class="statut" role="status">{{ session('statut') }}</div>
+    @endif
+
     <dl class="fiche">
         @foreach ($champs as $libelle => $valeur)
             <dt>{{ $libelle }}</dt>
@@ -38,6 +42,7 @@
     </p>
 
     <p class="actions">
+        <a class="bouton" href="{{ route('etudiants.edit', $etudiant) }}">Modifier la fiche</a>
         <a href="{{ route('etudiants.index') }}">Retour à la liste</a>
     </p>
 </div>
