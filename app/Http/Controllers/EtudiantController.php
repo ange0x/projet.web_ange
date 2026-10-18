@@ -26,7 +26,11 @@ class EtudiantController extends Controller
             : 'nom';
         $ordre = $request->query('ordre') === 'desc' ? 'desc' : 'asc';
 
-        $requete = Etudiant::query();
+        $terme = $this->texte($request->query('terme'));
+        $filiere = $this->choix($request->query('filiere'), config('ecole.filieres'));
+        $niveau = $this->choix($request->query('niveau'), config('ecole.niveaux'));
+
+        $requete = Etudiant::query()->filtrer($terme, $filiere, $niveau);
 
         if ($tri === 'nom') {
             $requete->orderBy('nom_search', $ordre)->orderBy('prenom_search', $ordre);
@@ -42,6 +46,10 @@ class EtudiantController extends Controller
             'etudiants' => $etudiants,
             'tri' => $tri,
             'ordre' => $ordre,
+            'terme' => $terme,
+            'filiere' => $filiere,
+            'niveau' => $niveau,
+            'filtresActifs' => $terme !== '' || $filiere !== null || $niveau !== null,
         ]);
     }
 
@@ -78,5 +86,21 @@ class EtudiantController extends Controller
                 $etudiant->nomComplet(),
                 $etudiant->numero_inscription,
             ));
+    }
+
+    /**
+     * Un paramètre falsifié (tableau, texte trop long) devient une chaîne vide.
+     */
+    private function texte(mixed $valeur): string
+    {
+        return is_string($valeur) ? mb_substr(trim($valeur), 0, 100) : '';
+    }
+
+    /**
+     * @param  array<int, string>  $autorises
+     */
+    private function choix(mixed $valeur, array $autorises): ?string
+    {
+        return is_string($valeur) && in_array($valeur, $autorises, true) ? $valeur : null;
     }
 }
