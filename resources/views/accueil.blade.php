@@ -14,10 +14,5 @@
             <li><a href="{{ route('comptes.index') }}">Gérer les comptes</a></li>
         @endif
     </ul>
-
-    <form method="post" action="{{ route('deconnexion') }}">
-        @csrf
-        <button type="submit">Se déconnecter</button>
-    </form>
 </div>
 @endsection
