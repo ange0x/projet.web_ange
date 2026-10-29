@@ -69,4 +69,34 @@ class CompteController extends Controller
             ->route('comptes.index')
             ->with('statut', 'Le compte a été modifié.');
     }
+
+    /**
+     * R13 : l'administrateur remet à zéro le compteur d'échecs et la date de fin de blocage.
+     */
+    public function debloquer(User $user): RedirectResponse
+    {
+        Gate::authorize('unlock', $user);
+
+        if (! $user->isLocked() && $user->failed_login_attempts === 0) {
+            return redirect()
+                ->route('comptes.index')
+                ->with('statut', sprintf('Le compte de %s n’est pas bloqué.', $user->name));
+        }
+
+        $user->forceFill([
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ])->save();
+
+        // Le journal automatique ignore ces deux colonnes : on enregistre l'action explicitement.
+        activity('comptes')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->event('unlocked')
+            ->log('Compte débloqué');
+
+        return redirect()
+            ->route('comptes.index')
+            ->with('statut', sprintf('Le compte de %s a été débloqué.', $user->name));
+    }
 }

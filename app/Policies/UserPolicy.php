@@ -25,4 +25,9 @@ class UserPolicy
     {
         return $user->isAdministrateur();
     }
+
+    public function unlock(User $user, User $model): bool
+    {
+        return $user->isAdministrateur();
+    }
 }

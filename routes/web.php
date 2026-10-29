@@ -26,5 +26,6 @@ Route::middleware('auth')->group(function () {
         Route::resource('comptes', CompteController::class)
             ->only(['index', 'create', 'store', 'edit', 'update'])
             ->parameters(['comptes' => 'user']);
+        Route::post('/comptes/{user}/debloquer', [CompteController::class, 'debloquer'])->name('comptes.debloquer');
     });
 });
