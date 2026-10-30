@@ -30,7 +30,7 @@ class AuthenticationService
         // pour ne pas révéler quels identifiants existent.
         if ($user === null || $user->isLocked()) {
             Hash::make($password);
-            $this->logFailure($identifiant, $ip);
+            $this->logFailure($user, $ip);
 
             return false;
         }
@@ -63,7 +63,7 @@ class AuthenticationService
         }
 
         $user->save();
-        $this->logFailure($identifiant, $ip);
+        $this->logFailure($user, $ip);
 
         return false;
     }
@@ -84,15 +84,22 @@ class AuthenticationService
         }
     }
 
-    private function logFailure(string $identifiant, ?string $ip): void
+    /**
+     * R15 : l'identifiant n'est enregistré que s'il correspond à un compte existant.
+     * Un texte saisi dans le mauvais champ (par exemple un mot de passe) n'entre jamais dans le journal.
+     */
+    private function logFailure(?User $user, ?string $ip): void
     {
+        $proprietes = ['ip' => $ip];
+
+        if ($user !== null) {
+            $proprietes['identifiant'] = $user->identifiant;
+        }
+
         activity('auth')
             ->causedByAnonymous()
             ->event('login_failed')
-            ->withProperties([
-                'identifiant' => $identifiant,
-                'ip' => $ip,
-            ])
+            ->withProperties($proprietes)
             ->log('Connexion échouée');
     }
 }
