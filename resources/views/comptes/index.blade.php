@@ -24,7 +24,7 @@
                     <th scope="col">Identifiant</th>
                     <th scope="col">Rôle</th>
                     <th scope="col">État</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,9 +33,25 @@
                         <th scope="row">{{ $compte->name }}</th>
                         <td>{{ $compte->identifiant }}</td>
                         <td>{{ $compte->roleLabel() }}</td>
-                        <td>{{ $compte->actif ? 'Actif' : 'Désactivé' }}</td>
                         <td>
-                            <a href="{{ route('comptes.edit', $compte) }}">Modifier<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></a>
+                            @if (! $compte->actif)
+                                Désactivé
+                            @elseif ($compte->isLocked())
+                                Bloqué (encore {{ max(1, (int) ceil(now()->diffInMinutes($compte->locked_until))) }} min)
+                            @else
+                                Actif
+                            @endif
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{{ route('comptes.edit', $compte) }}">Modifier<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></a>
+                                @if ($compte->isLocked())
+                                    <form method="post" action="{{ route('comptes.debloquer', $compte) }}">
+                                        @csrf
+                                        <button type="submit" class="secondaire">Débloquer<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @endforeach

@@ -440,3 +440,5 @@ th a:hover { color: var(--bleu); }
     body { background: #ffffff; }
     .carte { border: 0; padding: 0; }
 }
+
+td .actions { margin: 0; gap: 0.5rem 1rem; }
