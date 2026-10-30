@@ -40,6 +40,16 @@
     </div>
 
     <div class="champ">
+    <label for="email">E-mail (facultatif)</label>
+    <input id="email" name="email" type="email" maxlength="255" autocomplete="off"
+           value="{{ old('email', $edition ? $user->email : '') }}"
+           aria-describedby="aide-email @error('email') erreur-email @enderror"
+           @error('email') aria-invalid="true" @enderror>
+    <p class="aide" id="aide-email">Sert à envoyer le lien de réinitialisation du mot de passe.</p>
+    @error('email') <p class="erreur-champ" id="erreur-email">{{ $message }}</p> @enderror
+</div>
+
+    <div class="champ">
         <label for="password">{{ $edition ? 'Nouveau mot de passe (laisser vide pour conserver l’actuel)' : 'Mot de passe' }}</label>
         <input id="password" name="password" type="password" minlength="8"
                autocomplete="new-password" @unless($edition) required @endunless

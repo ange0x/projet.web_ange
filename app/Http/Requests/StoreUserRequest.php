@@ -14,6 +14,15 @@ class StoreUserRequest extends FormRequest
         return $this->user()?->can('create', User::class) ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $email = $this->input('email');
+
+        if (is_string($email)) {
+            $this->merge(['email' => mb_strtolower(trim($email))]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -26,6 +35,7 @@ class StoreUserRequest extends FormRequest
                 'regex:/^[A-Za-z0-9._-]+$/',
                 Rule::unique('users', 'identifiant'),
             ],
+            'email' => ['nullable', 'email:rfc', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
             'role' => ['required', Rule::enum(Role::class)],
             'actif' => ['nullable', 'boolean'],
@@ -44,6 +54,9 @@ class StoreUserRequest extends FormRequest
             'identifiant.max' => 'L’identifiant ne doit pas dépasser 100 caractères.',
             'identifiant.regex' => 'L’identifiant ne peut contenir que des lettres, des chiffres, des points, des tirets et des tirets bas.',
             'identifiant.unique' => 'Cet identifiant est déjà utilisé.',
+            'email.email' => 'Saisissez une adresse e-mail valide.',
+            'email.max' => 'L’adresse e-mail est trop longue.',
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre compte.',
             'password.required' => 'Saisissez un mot de passe.',
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.max' => 'Le mot de passe est trop long.',
