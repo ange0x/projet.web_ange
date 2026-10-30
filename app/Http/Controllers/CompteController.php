@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CompteController extends Controller
@@ -63,7 +66,26 @@ class CompteController extends Controller
             $donnees['password'] = $request->validated('password');
         }
 
-        $user->update($donnees);
+        DB::transaction(function () use ($user, $donnees): void {
+            // R14 : on verrouille les administrateurs actifs, pour que deux modifications
+            // simultanées ne puissent pas les retirer tous.
+            $administrateursActifs = User::query()
+                ->where('role', Role::Administrateur->value)
+                ->where('actif', true)
+                ->lockForUpdate()
+                ->pluck('id');
+
+            $retireUnAdministrateurActif = $administrateursActifs->contains($user->id)
+                && ($donnees['actif'] === false || $donnees['role'] !== Role::Administrateur->value);
+
+            if ($retireUnAdministrateurActif && $administrateursActifs->diff([$user->id])->isEmpty()) {
+                throw ValidationException::withMessages([
+                    $donnees['actif'] === false ? 'actif' : 'role' => 'Impossible de retirer le dernier administrateur actif.',
+                ]);
+            }
+
+            $user->update($donnees);
+        });
 
         return redirect()
             ->route('comptes.index')
