@@ -25,6 +25,10 @@ class UpdateUserRequest extends StoreUserRequest
                 'regex:/^[A-Za-z0-9._-]+$/',
                 Rule::unique('users', 'identifiant')->ignore($this->route('user')),
             ],
+            'email' => [
+                'nullable', 'email:rfc', 'max:255',
+                Rule::unique('users', 'email')->ignore($this->route('user')),
+            ],
             'password' => ['nullable', 'string', 'min:8', 'max:255', 'confirmed'],
             'role' => ['required', Rule::enum(Role::class)],
             'actif' => ['nullable', 'boolean'],
@@ -36,7 +40,7 @@ class UpdateUserRequest extends StoreUserRequest
         $validator->after(function (Validator $validator): void {
             $cible = $this->route('user');
 
-            // Un administrateur ne peut pas se verrouiller hors de l'application.
+            // R09 : un administrateur ne peut pas se verrouiller hors de l'application.
             if ($cible->is($this->user())) {
                 if (! $this->boolean('actif')) {
                     $validator->errors()->add('actif', 'Vous ne pouvez pas désactiver votre propre compte.');

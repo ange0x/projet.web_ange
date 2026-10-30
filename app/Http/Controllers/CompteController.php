@@ -35,6 +35,7 @@ class CompteController extends Controller
         User::create([
             'name' => $request->validated('name'),
             'identifiant' => $request->validated('identifiant'),
+            'email' => $request->validated('email'),
             'password' => $request->validated('password'),
             'role' => $request->validated('role'),
             'actif' => $request->boolean('actif'),
@@ -57,6 +58,7 @@ class CompteController extends Controller
         $donnees = [
             'name' => $request->validated('name'),
             'identifiant' => $request->validated('identifiant'),
+            'email' => $request->validated('email'),
             'role' => $request->validated('role'),
             'actif' => $request->boolean('actif'),
         ];
