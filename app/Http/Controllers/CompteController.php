@@ -123,4 +123,99 @@ class CompteController extends Controller
             ->route('comptes.index')
             ->with('statut', sprintf('Le compte de %s a été débloqué.', $user->name));
     }
+
+    /**
+     * R23 : page de confirmation. Rien n'est archivé ici.
+     */
+    public function confirmerArchivage(User $user): View
+    {
+        Gate::authorize('archive', $user);
+
+        return view('comptes.archiver', ['user' => $user]);
+    }
+
+    /**
+     * R23 et R24 : archive un compte, sauf le sien et le dernier administrateur actif.
+     */
+    public function archiver(User $user): RedirectResponse
+    {
+        Gate::authorize('archive', $user);
+
+        if ($user->is(auth()->user())) {
+            return $this->refus('Vous ne pouvez pas archiver votre propre compte.');
+        }
+
+        $archive = DB::transaction(function () use ($user): bool {
+            $administrateursActifs = User::query()
+                ->where('role', Role::Administrateur->value)
+                ->where('actif', true)
+                ->lockForUpdate()
+                ->pluck('id');
+
+            if ($administrateursActifs->contains($user->id) && $administrateursActifs->diff([$user->id])->isEmpty()) {
+                return false;
+            }
+
+            $user->delete();
+
+            return true;
+        });
+
+        if (! $archive) {
+            return $this->refus('Impossible d’archiver le dernier administrateur actif.');
+        }
+
+        // Journal explicite : auteur et cible, aucune donnée personnelle.
+        activity('comptes')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->event('archived')
+            ->log('Compte archivé');
+
+        return redirect()
+            ->route('comptes.index')
+            ->with('statut', sprintf('Le compte de %s a été archivé.', $user->name));
+    }
+
+    public function archives(): View
+    {
+        Gate::authorize('viewAny', User::class);
+
+        return view('comptes.archives', [
+            'comptes' => User::onlyTrashed()->orderBy('name')->get(),
+        ]);
+    }
+
+    /**
+     * R26 : restaure un compte archivé, avec son mot de passe.
+     */
+    public function restaurer(User $user): RedirectResponse
+    {
+        Gate::authorize('restore', $user);
+
+        if (! $user->trashed()) {
+            return redirect()
+                ->route('comptes.index')
+                ->with('statut', sprintf('Le compte de %s n’est pas archivé.', $user->name));
+        }
+
+        $user->restore();
+
+        activity('comptes')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->event('unarchived')
+            ->log('Compte restauré');
+
+        return redirect()
+            ->route('comptes.archives')
+            ->with('statut', sprintf('Le compte de %s a été restauré.', $user->name));
+    }
+
+    private function refus(string $message): RedirectResponse
+    {
+        return redirect()
+            ->route('comptes.index')
+            ->withErrors(['archive' => $message]);
+    }
 }

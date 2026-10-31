@@ -10,8 +10,20 @@
         <div class="statut" role="status">{{ session('statut') }}</div>
     @endif
 
+    @if ($errors->any())
+        <div class="erreurs" role="alert">
+            <h2>Action impossible</h2>
+            <ul>
+                @foreach ($errors->all() as $erreur)
+                    <li>{{ $erreur }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <p class="actions">
         <a class="bouton" href="{{ route('comptes.create') }}">Créer un compte</a>
+        <a href="{{ route('comptes.archives') }}">Comptes archivés</a>
         <a href="{{ route('accueil') }}">Retour à l’accueil</a>
     </p>
 
@@ -51,6 +63,9 @@
                                         <button type="submit" class="secondaire">Débloquer<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></button>
                                     </form>
                                 @endif
+                                @unless ($compte->is(auth()->user()))
+                                    <a href="{{ route('comptes.archiver.confirmer', $compte) }}">Archiver<span class="visuellement-cache"> le compte de {{ $compte->name }}</span></a>
+                                @endunless
                             </div>
                         </td>
                     </tr>

@@ -442,3 +442,7 @@ th a:hover { color: var(--bleu); }
 }
 
 td .actions { margin: 0; gap: 0.5rem 1rem; }
+
+
+button.danger { background: #8a1c1c; border-color: #8a1c1c; }
+button.danger:hover { background: #6b1414; border-color: #6b1414; }
