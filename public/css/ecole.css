@@ -442,3 +442,6 @@ th a:hover { color: var(--bleu); }
 }
 
 td .actions { margin: 0; gap: 0.5rem 1rem; }
+
+.lien-secondaire { margin: -0.5rem 0 1.25rem; }
+.lien-secondaire a { display: inline-block; padding: 0.375rem 0; }

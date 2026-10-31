@@ -36,6 +36,12 @@
                    @error('password') aria-invalid="true" @enderror>
         </div>
 
+        @if (Route::has('mot-de-passe.demande'))
+            <p class="lien-secondaire">
+                <a href="{{ route('mot-de-passe.demande') }}">Mot de passe oublié ?</a>
+            </p>
+        @endif
+
         <button type="submit">Se connecter</button>
     </form>
 </div>
