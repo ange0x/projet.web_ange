@@ -30,4 +30,14 @@ class UserPolicy
     {
         return $user->isAdministrateur();
     }
+
+    public function archive(User $user, User $model): bool
+    {
+        return $user->isAdministrateur();
+    }
+
+    public function restore(User $user, User $model): bool
+    {
+        return $user->isAdministrateur();
+    }
 }

@@ -23,9 +23,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/etudiants/{etudiant}/corriger', [EtudiantController::class, 'corriger'])->name('etudiants.corriger');
 
     Route::middleware('role:administrateur')->group(function () {
+        Route::get('/comptes/archives', [CompteController::class, 'archives'])->name('comptes.archives');
         Route::resource('comptes', CompteController::class)
             ->only(['index', 'create', 'store', 'edit', 'update'])
             ->parameters(['comptes' => 'user']);
         Route::post('/comptes/{user}/debloquer', [CompteController::class, 'debloquer'])->name('comptes.debloquer');
+        Route::get('/comptes/{user}/archiver', [CompteController::class, 'confirmerArchivage'])->name('comptes.archiver.confirmer');
+        Route::post('/comptes/{user}/archiver', [CompteController::class, 'archiver'])->name('comptes.archiver');
+        Route::post('/comptes/{user}/restaurer', [CompteController::class, 'restaurer'])->withTrashed()->name('comptes.restaurer');
     });
 });
