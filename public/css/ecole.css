@@ -442,14 +442,6 @@ th a:hover { color: var(--bleu); }
 }
 
 td .actions { margin: 0; gap: 0.5rem 1rem; }
-<<<<<<< Updated upstream
-=======
-
-
-button.danger { background: #8a1c1c; border-color: #8a1c1c; }
-button.danger:hover { background: #6b1414; border-color: #6b1414; }
-
 
 .lien-secondaire { margin: -0.5rem 0 1.25rem; }
 .lien-secondaire a { display: inline-block; padding: 0.375rem 0; }
->>>>>>> Stashed changes
