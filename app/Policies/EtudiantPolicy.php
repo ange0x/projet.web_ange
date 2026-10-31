@@ -26,4 +26,19 @@ class EtudiantPolicy
     {
         return $user->actif;
     }
+
+    public function archive(User $user, Etudiant $etudiant): bool
+    {
+        return $user->actif;
+    }
+
+    public function restore(User $user, Etudiant $etudiant): bool
+    {
+        return $user->actif;
+    }
+
+    public function viewArchived(User $user): bool
+    {
+        return $user->actif;
+    }
 }

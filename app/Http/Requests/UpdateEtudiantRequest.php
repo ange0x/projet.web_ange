@@ -39,7 +39,8 @@ class UpdateEtudiantRequest extends StoreEtudiantRequest
                 return;
             }
 
-            $existe = Etudiant::query()
+            // R28 : les étudiants archivés comptent aussi dans la détection des doublons.
+            $existe = Etudiant::withTrashed()
                 ->whereKeyNot($this->route('etudiant')->getKey())
                 ->where('nom_search', TextNormalizer::normalize($this->input('nom')))
                 ->where('prenom_search', TextNormalizer::normalize($this->input('prenom')))

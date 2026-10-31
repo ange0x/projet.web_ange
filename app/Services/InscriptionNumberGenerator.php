@@ -11,9 +11,12 @@ class InscriptionNumberGenerator
         $year ??= (int) now()->year;
         $prefix = $year.'-';
 
-        $last = Etudiant::query()
+        // Les étudiants archivés comptent : un numéro n'est jamais réattribué.
+        // On trie d'abord par longueur, pour que 2026-10000 passe après 2026-9999.
+        $last = Etudiant::withTrashed()
             ->where('numero_inscription', 'like', $prefix.'%')
             ->lockForUpdate()
+            ->orderByRaw('LENGTH(numero_inscription) DESC')
             ->orderByDesc('numero_inscription')
             ->value('numero_inscription');
 

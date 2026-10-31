@@ -173,6 +173,78 @@ class EtudiantController extends Controller
             ->with('statut', sprintf('La fiche de %s a été modifiée.', $etudiant->nomComplet()));
     }
 
+    /**
+     * R27 : page de confirmation. Rien n'est archivé ici.
+     */
+    public function confirmerArchivage(Etudiant $etudiant): View
+    {
+        Gate::authorize('archive', $etudiant);
+
+        return view('etudiants.archiver', ['etudiant' => $etudiant]);
+    }
+
+    /**
+     * R27 et R30 : archive la fiche et journalise l'action, sans donnée de l'étudiant.
+     */
+    public function archiver(Etudiant $etudiant): RedirectResponse
+    {
+        Gate::authorize('archive', $etudiant);
+
+        $etudiant->delete();
+
+        activity('etudiants')
+            ->causedBy(auth()->user())
+            ->performedOn($etudiant)
+            ->event('archived')
+            ->log('Fiche archivée');
+
+        return redirect()
+            ->route('etudiants.index')
+            ->with('statut', sprintf('La fiche de %s a été archivée.', $etudiant->nomComplet()));
+    }
+
+    /**
+     * R29 : liste des fiches archivées.
+     */
+    public function archives(): View
+    {
+        Gate::authorize('viewArchived', Etudiant::class);
+
+        return view('etudiants.archives', [
+            'etudiants' => Etudiant::onlyTrashed()
+                ->orderBy('nom_search')
+                ->orderBy('prenom_search')
+                ->orderBy('id')
+                ->paginate(self::PAR_PAGE),
+        ]);
+    }
+
+    /**
+     * R29 et R30 : restaure une fiche archivée.
+     */
+    public function restaurer(Etudiant $etudiant): RedirectResponse
+    {
+        Gate::authorize('restore', $etudiant);
+
+        if (! $etudiant->trashed()) {
+            return redirect()
+                ->route('etudiants.index')
+                ->with('statut', sprintf('La fiche de %s n’est pas archivée.', $etudiant->nomComplet()));
+        }
+
+        $etudiant->restore();
+
+        activity('etudiants')
+            ->causedBy(auth()->user())
+            ->performedOn($etudiant)
+            ->event('unarchived')
+            ->log('Fiche restaurée');
+
+        return redirect()
+            ->route('etudiants.archives')
+            ->with('statut', sprintf('La fiche de %s a été restaurée.', $etudiant->nomComplet()));
+    }
+
     private function aucunChangement(Etudiant $etudiant): RedirectResponse
     {
         return redirect()

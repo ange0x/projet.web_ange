@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -32,7 +33,7 @@ use Spatie\Activitylog\Support\LogOptions;
 class Etudiant extends Model
 {
     /** @use HasFactory<EtudiantFactory> */
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected function casts(): array
     {
@@ -67,9 +68,12 @@ class Etudiant extends Model
         });
     }
 
+    /**
+     * Le compte de l'auteur peut être archivé : son nom reste affiché sur la fiche.
+     */
     public function modificateur(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'modifie_par_id');
+        return $this->belongsTo(User::class, 'modifie_par_id')->withTrashed();
     }
 
     public function nomComplet(): string
