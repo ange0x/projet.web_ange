@@ -43,6 +43,7 @@
 
     <p class="actions">
         <a class="bouton" href="{{ route('etudiants.edit', $etudiant) }}">Modifier la fiche</a>
+        <a href="{{ route('etudiants.archiver.confirmer', $etudiant) }}">Archiver la fiche</a>
         <a href="{{ route('etudiants.index') }}">Retour à la liste</a>
     </p>
 </div>

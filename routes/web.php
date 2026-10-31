@@ -16,11 +16,17 @@ Route::middleware('auth')->group(function () {
     Route::view('/', 'accueil')->name('accueil');
     Route::post('/deconnexion', [ConnexionController::class, 'deconnecter'])->name('deconnexion');
 
+    // Avant la ressource : sinon « archives » serait lu comme un numéro d'étudiant.
+    Route::get('/etudiants/archives', [EtudiantController::class, 'archives'])->name('etudiants.archives');
+
     Route::resource('etudiants', EtudiantController::class)
         ->only(['index', 'create', 'store', 'show', 'edit', 'update'])
         ->parameters(['etudiants' => 'etudiant']);
     Route::post('/etudiants/{etudiant}/confirmer', [EtudiantController::class, 'confirmer'])->name('etudiants.confirmer');
     Route::post('/etudiants/{etudiant}/corriger', [EtudiantController::class, 'corriger'])->name('etudiants.corriger');
+    Route::get('/etudiants/{etudiant}/archiver', [EtudiantController::class, 'confirmerArchivage'])->name('etudiants.archiver.confirmer');
+    Route::post('/etudiants/{etudiant}/archiver', [EtudiantController::class, 'archiver'])->name('etudiants.archiver');
+    Route::post('/etudiants/{etudiant}/restaurer', [EtudiantController::class, 'restaurer'])->withTrashed()->name('etudiants.restaurer');
 
     Route::middleware('role:administrateur')->group(function () {
         Route::get('/comptes/archives', [CompteController::class, 'archives'])->name('comptes.archives');

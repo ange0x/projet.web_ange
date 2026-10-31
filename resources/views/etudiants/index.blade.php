@@ -26,8 +26,13 @@
 <div class="carte carte-large">
     <h1>Liste des étudiants</h1>
 
+    @if (session('statut'))
+        <div class="statut" role="status">{{ session('statut') }}</div>
+    @endif
+
     <p class="actions">
         <a class="bouton" href="{{ route('etudiants.create') }}">Enregistrer un étudiant</a>
+        <a href="{{ route('etudiants.archives') }}">Étudiants archivés</a>
         <a href="{{ route('accueil') }}">Retour à l’accueil</a>
     </p>
 
