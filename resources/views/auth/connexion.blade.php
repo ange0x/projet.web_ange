@@ -3,46 +3,50 @@
 @section('titre', 'Connexion')
 
 @section('contenu')
-<div class="carte">
-    <h1>Connexion</h1>
-    <p>Gestion des inscriptions – ESGC Verechaguine AK</p>
+<div class="carte connexion">
+    <div class="connexion-tete">
+        <h1>Connexion</h1>
+        <p>Gestion des inscriptions – ESGC Verechaguine AK</p>
+    </div>
 
-    @if ($errors->any())
-        <div class="erreurs" role="alert">
-            <h2>Veuillez corriger les erreurs suivantes</h2>
-            <ul>
-                @foreach ($errors->all() as $erreur)
-                    <li>{{ $erreur }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form method="post" action="{{ route('connexion.soumettre') }}" novalidate>
-        @csrf
-
-        <div class="champ">
-            <label for="identifiant">Identifiant</label>
-            <input id="identifiant" name="identifiant" type="text"
-                   value="{{ old('identifiant') }}"
-                   autocomplete="username" required
-                   @error('identifiant') aria-invalid="true" @enderror>
-        </div>
-
-        <div class="champ">
-            <label for="password">Mot de passe</label>
-            <input id="password" name="password" type="password"
-                   autocomplete="current-password" required
-                   @error('password') aria-invalid="true" @enderror>
-        </div>
-
-        @if (Route::has('mot-de-passe.demande'))
-            <p class="lien-secondaire">
-                <a href="{{ route('mot-de-passe.demande') }}">Mot de passe oublié ?</a>
-            </p>
+    <div class="connexion-corps">
+        @if ($errors->any())
+            <div class="erreurs" role="alert">
+                <h2>Veuillez corriger les erreurs suivantes</h2>
+                <ul>
+                    @foreach ($errors->all() as $erreur)
+                        <li>{{ $erreur }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
 
-        <button type="submit">Se connecter</button>
-    </form>
+        <form method="post" action="{{ route('connexion.soumettre') }}" novalidate>
+            @csrf
+
+            <div class="champ">
+                <label for="identifiant">Identifiant</label>
+                <input id="identifiant" name="identifiant" type="text"
+                       value="{{ old('identifiant') }}"
+                       autocomplete="username" required
+                       @error('identifiant') aria-invalid="true" @enderror>
+            </div>
+
+            <div class="champ">
+                <label for="password">Mot de passe</label>
+                <input id="password" name="password" type="password"
+                       autocomplete="current-password" required
+                       @error('password') aria-invalid="true" @enderror>
+            </div>
+
+            @if (Route::has('mot-de-passe.demande'))
+                <p class="lien-secondaire">
+                    <a href="{{ route('mot-de-passe.demande') }}">Mot de passe oublié ?</a>
+                </p>
+            @endif
+
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
 </div>
 @endsection
