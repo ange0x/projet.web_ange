@@ -3,6 +3,7 @@
 use App\Http\Controllers\CompteController;
 use App\Http\Controllers\ConnexionController;
 use App\Http\Controllers\EtudiantController;
+use App\Http\Controllers\MotDePasseOublieController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -10,6 +11,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/connexion', [ConnexionController::class, 'soumettre'])
         ->middleware('throttle:10,1')
         ->name('connexion.soumettre');
+
+    Route::get('/mot-de-passe-oublie', [MotDePasseOublieController::class, 'demande'])->name('mot-de-passe.demande');
+    Route::post('/mot-de-passe-oublie', [MotDePasseOublieController::class, 'envoyer'])
+        ->middleware('throttle:5,60')
+        ->name('mot-de-passe.envoyer');
+    Route::get('/reinitialisation/{token}', [MotDePasseOublieController::class, 'formulaire'])->name('password.reset');
+    Route::post('/reinitialisation', [MotDePasseOublieController::class, 'reinitialiser'])
+        ->middleware('throttle:10,1')
+        ->name('mot-de-passe.reinitialiser');
 });
 
 Route::middleware('auth')->group(function () {

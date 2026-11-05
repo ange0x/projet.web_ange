@@ -448,3 +448,19 @@ td .actions { margin: 0; gap: 0.5rem 1rem; }
 
 button.danger { background: #8a1c1c; border-color: #8a1c1c; }
 button.danger:hover { background: #6b1414; border-color: #6b1414; }
+
+
+/* Texte des boutons : blanc en thème clair, bleu nuit en thème sombre (contraste AA) */
+:root { --sur-bleu: #ffffff; }
+
+@media (prefers-color-scheme: dark) {
+    :root { --sur-bleu: #0a1c30; }
+}
+
+button, a.bouton { color: var(--sur-bleu); }
+button:hover, a.bouton:hover { color: var(--sur-bleu); }
+button.secondaire { color: var(--bleu); }
+button.secondaire:hover { color: var(--sur-bleu); }
+button.danger, button.danger:hover { color: #ffffff; }
+.pagination a:hover { color: var(--sur-bleu); }
+.lien-evitement, .lien-evitement:hover { color: var(--sur-bleu); }
