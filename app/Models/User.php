@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use App\Notifications\ReinitialisationMotDePasse;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -40,6 +41,14 @@ class User extends Authenticatable
             ->logExcept(['password'])
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['updated_at', 'failed_login_attempts', 'locked_until', 'remember_token']);
+    }
+
+    /**
+     * Le message de réinitialisation est écrit en français.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ReinitialisationMotDePasse($token));
     }
 
     public function etudiantsModifies(): HasMany
